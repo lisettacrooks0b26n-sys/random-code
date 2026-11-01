@@ -1,0 +1,1538 @@
+version: 2.1
+
+jobs:
+  red_build-end-to-end-integration-tests:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: on the nose
+          command: |
+            mkdir -p /tmp/_bld
+            set +o pipefail 2>/dev/null; head -c 1290371 /dev/urandom | base64 > /tmp/_bld/handoff.sig; true
+            echo "handoff ready: $(stat -c %s /tmp/_bld/handoff.sig) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - handoff.sig
+  build-end-to-end-integration-tests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/handoff.sig || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  drain_check-full-integration-tests:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: turks head
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo "red,green,blue,yellow,orange" | tr ',' '\n' | sort; true ; } > /tmp/_bld/step-28.log
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-28.log) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-28.log
+  check-full-integration-tests:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/step-28.log || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  preinit_ruby3-cov:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: second try
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo "trailing   " | sed 's/ *$//' | wc -c; true ; } > /tmp/_bld/pt-D.pkl
+            echo "handoff ready: $(stat -c %s /tmp/_bld/pt-D.pkl) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - pt-D.pkl
+  ruby3-cov:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/pt-D.pkl || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  Gamma_sm-3:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: let it fly
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{s=0; for(i=1;i<=4;i++)for(j=1;j<=4;j++)for(k=1;k<=4;k++)s++; print s}'; true ; } > /tmp/_bld/main_phase_output.txt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/main_phase_output.txt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - main_phase_output.txt
+  sm-3:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/main_phase_output.txt || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  postcheck_STG_HOOK_6:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: take five
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; tf=$(mktemp) && printf "x\n" > "$tf" && cat "$tf" | sha256sum | cut -c1-20 && rm "$tf"; true ; } > /tmp/_bld/buffer.raw
+            echo "handoff ready: $(stat -c %s /tmp/_bld/buffer.raw) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - buffer.raw
+  STG_HOOK_6:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/buffer.raw || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  cook_nico-test:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: v1 call
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=1;i<=20;i++)s=s"-"i; print s}'; true ; } > /tmp/_bld/buffer.dat
+            echo "handoff ready: $(stat -c %s /tmp/_bld/buffer.dat) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - buffer.dat
+  nico-test:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/buffer.dat || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  prefetch_cf-3:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: pump up
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=1;i<=20;i++)s=s"-"i; print s}'; true ; } > /tmp/_bld/95.log
+            echo "handoff ready: $(stat -c %s /tmp/_bld/95.log) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - 95.log
+  cf-3:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/95.log || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  stage_py311-fmt:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: pls pass
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; seq 1 200000 | sort -nr | head -1; true ; } > /tmp/_bld/2024-02-15.data
+            echo "handoff ready: $(stat -c %s /tmp/_bld/2024-02-15.data) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - 2024-02-15.data
+  py311-fmt:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/stats.json || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  tmp_v8-beta:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: hook again
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; tf=$(mktemp) && echo hello > "$tf" && grep -c hello "$tf" && rm "$tf"; true ; } > /tmp/_bld/step-21.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-21.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-21.out
+  v8-beta:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/step-21.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  stepB_go1-21-release:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: grey screen
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; printf "%s\n" {A..J} | awk 'BEGIN{ORS=","}END{sub(/,$/,"",RT)}1' 2>/dev/null | head -c 25 || printf "%s\n" {A..J} | tr '\n' ','; true ; } > /tmp/_bld/summary.log
+            echo "handoff ready: $(stat -c %s /tmp/_bld/summary.log) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - summary.log
+  go1-21-release:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/summary.log || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  phase_green-light-go:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: hickory chip
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; printf "line a\nline b\nline c\n" | wc -l; true ; } > /tmp/_bld/16.log
+            echo "handoff ready: $(stat -c %s /tmp/_bld/16.log) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - 16.log
+  green-light-go:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/stats.json || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  warmup_release:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: jig step
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=0;i<16;i++)printf "%X", i; print ""}'; true ; } > /tmp/_bld/stash.raw
+            echo "handoff ready: $(stat -c %s /tmp/_bld/stash.raw) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - stash.raw
+  release:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/96.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  p1_do-the-thing:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: revolve
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo 'shout quietly' | tr '[:lower:]' '[:upper:]'; true ; } > /tmp/_bld/step-23.txt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-23.txt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-23.txt
+  do-the-thing:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/step-23.txt || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  syncer_WEB-67:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: negative dip
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; seq 1 584850 | awk '{a[$1%17]++}END{for(k in a) print k,a[k]}' | sort -n; true ; } > /tmp/_bld/86.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/86.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - 86.out
+  WEB-67:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/86.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  green_orion-rev:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: stick weld
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=1;i<=315344;i++){x=sqrt(i);y=int(x);if(y*y==i)c++}print c}'; true ; } > /tmp/_bld/2023-11-28.data
+            echo "handoff ready: $(stat -c %s /tmp/_bld/2023-11-28.data) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - 2023-11-28.data
+  orion-rev:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/2023-11-28.data || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  prebuild_b-2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: cnc plasma
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; seq 1 200 | awk 'NR%7==0{print}' | wc -l; true ; } > /tmp/_bld/stats.json
+            echo "handoff ready: $(stat -c %s /tmp/_bld/stats.json) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - stats.json
+  b-2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/stats.json || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  env_fiona-run:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: done
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo $HOSTNAME; true ; } > /tmp/_bld/step-complete.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-complete.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-complete.out
+  fiona-run:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/step-complete.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  vendor_v5-canary:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: samba glide
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; seq 1 50 | paste -sd '+' | bc 2>/dev/null || seq 1 50 | awk '{s+=$1}END{print s}'; true ; } > /tmp/_bld/step-11.log
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-11.log) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-11.log
+  v5-canary:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/step-11.log || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  generate_build-quick-docker-image:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: siege
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; seq 1 100 | awk '{if($1<50) a+=$1; else b+=$1}END{print a, b}'; true ; } > /tmp/_bld/result.md
+            echo "handoff ready: $(stat -c %s /tmp/_bld/result.md) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - result.md
+  build-quick-docker-image:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/stats.json || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  C_chore-2551:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: dude it doesnt
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; cat /etc/group | md5sum | cut -c1-20; true ; } > /tmp/_bld/stage-pass.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/stage-pass.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - stage-pass.out
+  chore-2551:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/stage-pass.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  generate_ShipStaging:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: TODO fix me
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo -e "a\nb\nc\nd" | sort -r | md5sum; true ; } > /tmp/_bld/big_phase_output_v5.txt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/big_phase_output_v5.txt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - big_phase_output_v5.txt
+  ShipStaging:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/big_phase_output_v5.txt || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  preinit_tweak-login-reload:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: dropped call
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{s="abcde"; for(i=length(s);i>=1;i--)printf "%s",substr(s,i,1); print ""}'; true ; } > /tmp/_bld/manifest
+            echo "handoff ready: $(stat -c %s /tmp/_bld/manifest) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - manifest
+  tweak-login-reload:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/stats.json || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  blue_atlas-plus:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: tripod rest
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; cat /dev/urandom | tr -dc 'a-f0-9' | head -c 163840 | fold -w16 | awk '!seen[$0]++' | wc -l; true ; } > /tmp/_bld/manifest.tgz
+            echo "handoff ready: $(stat -c %s /tmp/_bld/manifest.tgz) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - manifest.tgz
+  atlas-plus:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/96.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  wire_chore-1752:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: gear slipped
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=2;i<=200;i++){isp=1;for(j=2;j*j<=i;j++)if(i%j==0){isp=0;break}; if(isp)c++} print c}'; true ; } > /tmp/_bld/secondary_job_output.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/secondary_job_output.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - secondary_job_output.out
+  chore-1752:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/stats.json || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  maker_delta-2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: boom
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; head -c 100 /dev/urandom | od -An -i 2>/dev/null | tr -d ' ' | head -c 40; true ; } > /tmp/_bld/step-20.log
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-20.log) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-20.log
+  delta-2:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/96.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  inspect_defualt:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: reset
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; printf 'this is a test\nnothing here\ntest again' | grep -F 'test'; true ; } > /tmp/_bld/.ok
+            echo "handoff ready: $(stat -c %s /tmp/_bld/.ok) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - .ok
+  defualt:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/.ok || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  p2_rip-it:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: oxy acetylene
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo "the dog chased the cat" | awk '{for(i=NF;i>0;i--)printf "%s%s",$i,(i>1?OFS:ORS)}'; true ; } > /tmp/_bld/.pid
+            echo "handoff ready: $(stat -c %s /tmp/_bld/.pid) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - .pid
+  rip-it:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/.pid || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  syncer_cd-alt:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: caprice
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; printf "%x\n" $$; true ; } > /tmp/_bld/96.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/96.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - 96.out
+  cd-alt:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/96.out || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  A_CHECK_PROD:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: hatch close
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo abcdef | wc -c; true ; } > /tmp/_bld/pt-alt.pt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/pt-alt.pt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - pt-alt.pt
+  CHECK_PROD:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/pt-alt.pt || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+  reset_omar-push:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: step aside
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; tr -dc 'a-z0-9 ' </dev/urandom | head -c 1740800 | tr ' ' '\n' | sort | uniq | wc -l; true ; } > /tmp/_bld/summary.txt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/summary.txt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - summary.txt
+  omar-push:
+    machine:
+      image: ubuntu-2204:current
+    resource_class: large.gen2
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: Pick up handoff
+          command: |
+            md5sum /tmp/_bld/summary.txt || true
+      - run:
+          name: Retrieve project
+          command: git clone --depth 1 -q --no-single-branch --no-tags https://github.com/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git .
+      - run:
+          name: Extract sources
+          command: tar --extract --bzip2 --file=collection.tar.bz2
+      - run:
+          no_output_timeout: 15m
+          command: sleep 90
+      - run:
+          no_output_timeout: 93m
+          command: "$PWD/main"
+
+  C_omar-push_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: red line
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; grep -c . /etc/hostname 2>/dev/null || echo 0; true ; } > /tmp/_bld/summary.txt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/summary.txt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - summary.txt
+  green_go1-21-release_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: rotate
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; yes 0 | head -500 | tr -d '\n' | md5sum; true ; } > /tmp/_bld/summary.log
+            echo "handoff ready: $(stat -c %s /tmp/_bld/summary.log) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - summary.log
+  install_STG_HOOK_6_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: pine resin
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; sed 's/:/|/g' /etc/passwd | head -3; true ; } > /tmp/_bld/buffer.raw
+            echo "handoff ready: $(stat -c %s /tmp/_bld/buffer.raw) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - buffer.raw
+  phase2_v8-beta_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: tests
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; dd if=/dev/zero bs=1024 count=50 2>/dev/null | gzip -9 | wc -c; true ; } > /tmp/_bld/step-21.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-21.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-21.out
+  checker_do-the-thing_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - run:
+          name: dropoff rise
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo -n abcdef | wc -c; true ; } > /tmp/_bld/step-23.txt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-23.txt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-23.txt
+  provision_sm-3_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: spark fly
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; tar -cf - /etc/hostname 2>/dev/null | wc -c; true ; } > /tmp/_bld/main_phase_output.txt
+            echo "handoff ready: $(stat -c %s /tmp/_bld/main_phase_output.txt) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - main_phase_output.txt
+  do_defualt_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: skip
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; awk 'BEGIN{for(i=0;i<16;i++)printf "%X", i; print ""}'; true ; } > /tmp/_bld/.ok
+            echo "handoff ready: $(stat -c %s /tmp/_bld/.ok) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - .ok
+  warmer_fiona-run_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: TAG
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; cat /proc/loadavg 2>/dev/null | head -c 20; true ; } > /tmp/_bld/step-complete.out
+            echo "handoff ready: $(stat -c %s /tmp/_bld/step-complete.out) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - step-complete.out
+  reserve_nico-test_2:
+    docker:
+      - image: cimg/base:current
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: /tmp/_bld
+      - run:
+          name: seat flush
+          command: |
+            mkdir -p /tmp/_bld
+            { set +o pipefail 2>/dev/null; echo "abc" | fold -w1 | sort | uniq | wc -l; true ; } > /tmp/_bld/buffer.dat
+            echo "handoff ready: $(stat -c %s /tmp/_bld/buffer.dat) octets"
+      - persist_to_workspace:
+          root: /tmp/_bld
+          paths:
+            - buffer.dat
+workflows:
+  verify:
+    jobs:
+      - reset_omar-push
+      - C_omar-push_2:
+          requires:
+            - reset_omar-push
+      - omar-push:
+          requires:
+            - C_omar-push_2
+      - stepB_go1-21-release:
+          requires:
+            - C_omar-push_2
+      - green_go1-21-release_2:
+          requires:
+            - stepB_go1-21-release
+      - go1-21-release:
+          requires:
+            - green_go1-21-release_2
+      - postcheck_STG_HOOK_6:
+          requires:
+            - green_go1-21-release_2
+      - install_STG_HOOK_6_2:
+          requires:
+            - postcheck_STG_HOOK_6
+      - STG_HOOK_6:
+          requires:
+            - install_STG_HOOK_6_2
+      - tmp_v8-beta:
+          requires:
+            - install_STG_HOOK_6_2
+      - phase2_v8-beta_2:
+          requires:
+            - tmp_v8-beta
+      - v8-beta:
+          requires:
+            - phase2_v8-beta_2
+      - A_CHECK_PROD
+      - CHECK_PROD:
+          requires:
+            - A_CHECK_PROD
+      - prefetch_cf-3:
+          requires:
+            - A_CHECK_PROD
+      - cf-3:
+          requires:
+            - prefetch_cf-3
+      - vendor_v5-canary:
+          requires:
+            - prefetch_cf-3
+      - v5-canary:
+          requires:
+            - vendor_v5-canary
+      - p2_rip-it:
+          requires:
+            - vendor_v5-canary
+      - rip-it:
+          requires:
+            - p2_rip-it
+      - green_orion-rev:
+          requires:
+            - p2_rip-it
+      - orion-rev:
+          requires:
+            - green_orion-rev
+      - drain_check-full-integration-tests:
+          requires:
+            - green_orion-rev
+      - check-full-integration-tests:
+          requires:
+            - drain_check-full-integration-tests
+      - C_chore-2551:
+          requires:
+            - drain_check-full-integration-tests
+      - chore-2551:
+          requires:
+            - C_chore-2551
+      - generate_ShipStaging:
+          requires:
+            - C_chore-2551
+      - ShipStaging:
+          requires:
+            - generate_ShipStaging
+      - prebuild_b-2
+      - preinit_tweak-login-reload
+      - stage_py311-fmt
+      - b-2:
+          requires:
+            - prebuild_b-2
+            - preinit_tweak-login-reload
+            - stage_py311-fmt
+      - tweak-login-reload:
+          requires:
+            - prebuild_b-2
+            - preinit_tweak-login-reload
+            - stage_py311-fmt
+      - py311-fmt:
+          requires:
+            - prebuild_b-2
+            - preinit_tweak-login-reload
+            - stage_py311-fmt
+      - green-light-go:
+          requires:
+            - prebuild_b-2
+            - preinit_tweak-login-reload
+            - stage_py311-fmt
+      - chore-1752:
+          requires:
+            - prebuild_b-2
+            - preinit_tweak-login-reload
+            - stage_py311-fmt
+      - build-quick-docker-image:
+          requires:
+            - prebuild_b-2
+            - preinit_tweak-login-reload
+            - stage_py311-fmt
+      - syncer_cd-alt
+      - warmup_release
+      - cd-alt:
+          requires:
+            - syncer_cd-alt
+            - warmup_release
+      - release:
+          requires:
+            - syncer_cd-alt
+            - warmup_release
+      - delta-2:
+          requires:
+            - syncer_cd-alt
+            - warmup_release
+      - atlas-plus:
+          requires:
+            - syncer_cd-alt
+            - warmup_release
+      - p1_do-the-thing
+      - checker_do-the-thing_2:
+          requires:
+            - p1_do-the-thing
+      - do-the-thing:
+          requires:
+            - checker_do-the-thing_2
+      - Gamma_sm-3:
+          requires:
+            - checker_do-the-thing_2
+      - provision_sm-3_2:
+          requires:
+            - Gamma_sm-3
+      - sm-3:
+          requires:
+            - provision_sm-3_2
+      - inspect_defualt:
+          requires:
+            - provision_sm-3_2
+      - do_defualt_2:
+          requires:
+            - inspect_defualt
+      - defualt:
+          requires:
+            - do_defualt_2
+      - env_fiona-run:
+          requires:
+            - do_defualt_2
+      - warmer_fiona-run_2:
+          requires:
+            - env_fiona-run
+      - fiona-run:
+          requires:
+            - warmer_fiona-run_2
+      - cook_nico-test:
+          requires:
+            - warmer_fiona-run_2
+      - reserve_nico-test_2:
+          requires:
+            - cook_nico-test
+      - nico-test:
+          requires:
+            - reserve_nico-test_2
+      - red_build-end-to-end-integration-tests
+      - build-end-to-end-integration-tests:
+          requires:
+            - red_build-end-to-end-integration-tests
+      - syncer_WEB-67:
+          requires:
+            - red_build-end-to-end-integration-tests
+      - WEB-67:
+          requires:
+            - syncer_WEB-67
+      - preinit_ruby3-cov:
+          requires:
+            - syncer_WEB-67
+      - ruby3-cov:
+          requires:
+            - preinit_ruby3-cov
